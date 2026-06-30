@@ -274,6 +274,30 @@
 
   footer{margin-top:32px; font-size:12px; color:var(--text-secondary); text-align:center; line-height:1.6;}
 
+  .gate-overlay{
+    position:fixed; inset:0; background:rgba(5,10,20,0.78);
+    display:flex; align-items:center; justify-content:center;
+    z-index:100; padding:20px; backdrop-filter:blur(2px);
+  }
+  .gate-box{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:32px 28px; max-width:420px; width:100%; text-align:center; position:relative;
+  }
+  .gate-box h3{font-family:var(--font-display); font-size:20px; margin:0 0 10px;}
+  .gate-desc{font-size:13.5px; color:var(--text-secondary); line-height:1.55; margin:0 0 20px;}
+  .gate-close{
+    position:absolute; top:14px; right:16px; background:none; border:none;
+    color:var(--text-secondary); font-size:22px; padding:0; width:28px; height:28px;
+    border-radius:6px; cursor:pointer;
+  }
+  .gate-close:hover{color:var(--text-primary);}
+  .gate-status{font-size:12.5px; color:var(--accent-teal); min-height:18px; margin:10px 0 0;}
+  .gate-skip{
+    margin-top:16px; background:none; border:none; color:var(--text-secondary);
+    text-decoration:underline; font-size:12.5px; font-weight:400; padding:0;
+  }
+  .gate-skip:hover{color:var(--text-primary);}
+
   @media (max-width:480px){
     .controls{flex-wrap:wrap;}
     .btn-icon{order:-1;}
@@ -419,6 +443,24 @@
     Feito por Felipe · stack vanilla HTML/CSS/JS, sem dependências.
   </footer>
 </div>
+
+<div class="gate-overlay" id="loginGateModal" style="display:none;">
+  <div class="gate-box">
+    <button class="gate-close" id="gateCloseBtn" aria-label="Fechar">×</button>
+    <p class="eyebrow">Salvar progresso</p>
+    <h3>Crie sua conta gratuita</h3>
+    <p class="gate-desc">Você já está estudando há 1 minuto — vale a pena criar uma conta agora pra não perder esse progresso. Sem login, tudo que você marcar fica só nesta sessão e some se fechar a aba. Com login, sincroniza em qualquer dispositivo.</p>
+    <div class="auth-loggedout" style="width:100%; justify-content:center;">
+      <button class="btn-google" id="gateGoogleBtn">Entrar com Google</button>
+      <span class="auth-or">ou receba um link por e-mail</span>
+      <input type="email" id="gateMagicEmailInput" class="auth-email-input" placeholder="seu@email.com">
+      <button id="gateMagicLinkBtn">Enviar link</button>
+    </div>
+    <p class="gate-status" id="gateStatus"></p>
+    <button class="gate-skip" id="gateSkipBtn">Continuar sem salvar por agora</button>
+  </div>
+</div>
+
 
 <script>
 const DOMAINS = {

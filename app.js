@@ -423,6 +423,8 @@ function finishExam(){
   const scaled = Math.round(100 + (correctCount/total)*900);
   const passed = scaled >= 700;
 
+  renderExamResult(correctCount, total, pct, scaled, passed, domainStats);
+
   const stats = loadJSON(EXAM_STATS_KEY, {1:{correct:0,total:0},2:{correct:0,total:0},3:{correct:0,total:0},4:{correct:0,total:0}});
   Object.keys(domainStats).forEach(d=>{
     stats[d].correct += domainStats[d].correct;
@@ -430,8 +432,6 @@ function finishExam(){
   });
   saveJSON(EXAM_STATS_KEY, stats);
   scheduleSync();
-
-  renderExamResult(correctCount, total, pct, scaled, passed, domainStats);
 }
 
 function renderExamResult(correctCount, total, pct, scaled, passed, domainStats){
@@ -642,6 +642,7 @@ async function handleAuthChange(session){
   if(currentUser){
     document.getElementById('authEmail').textContent = currentUser.email || 'Conectado';
     await syncOnLogin();
+    hideLoginGate();
   }
 }
 
@@ -695,29 +696,110 @@ async function pushProgressNow(){
   }
 }
 
-document.getElementById('googleLoginBtn').addEventListener('click', ()=>{
+function friendlyAuthError(error){
+  if(!error) return '';
+  const msg = (error.message || '').toLowerCase();
+  if(msg.includes('provider is not enabled') || error.code === 'validation_failed'){
+    return 'Login com Google ainda não foi configurado neste projeto. Use o link por e-mail por enquanto (veja o SETUP.md).';
+  }
+  if(msg.includes('rate limit')){
+    return 'Muitas tentativas seguidas — espera um minuto e tenta de novo.';
+  }
+  return 'Não deu certo agora. Tenta de novo em instantes.';
+}
+
+async function attemptGoogleLogin(){
   if(!supabaseClient) return;
-  supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
-});
-document.getElementById('magicLinkBtn').addEventListener('click', async ()=>{
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+  if(error){
+    const msg = friendlyAuthError(error);
+    document.getElementById('authStatus').textContent = msg;
+    const gateStatus = document.getElementById('gateStatus');
+    if(gateStatus) gateStatus.textContent = msg;
+  }
+}
+
+async function attemptMagicLink(inputId, btnId, statusId){
   if(!supabaseClient) return;
-  const input = document.getElementById('magicEmailInput');
+  const input = document.getElementById(inputId);
   const email = input.value.trim();
   if(!email) return;
-  const btn = document.getElementById('magicLinkBtn');
+  const btn = document.getElementById(btnId);
+  const statusEl = statusId ? document.getElementById(statusId) : null;
   const originalText = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Enviando...';
   const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
   btn.disabled = false;
-  btn.textContent = error ? 'Erro, tente de novo' : 'Link enviado! Veja seu e-mail';
-  if(!error) input.value = '';
+  if(error){
+    btn.textContent = 'Erro, tente de novo';
+    if(statusEl) statusEl.textContent = friendlyAuthError(error);
+  } else {
+    btn.textContent = 'Link enviado!';
+    if(statusEl) statusEl.textContent = 'Confira seu e-mail (inclusive spam) e clique no link recebido.';
+    input.value = '';
+  }
   setTimeout(()=>{ btn.textContent = originalText; }, 4000);
-});
+}
+
+document.getElementById('googleLoginBtn').addEventListener('click', attemptGoogleLogin);
+document.getElementById('magicLinkBtn').addEventListener('click', ()=> attemptMagicLink('magicEmailInput', 'magicLinkBtn', 'authStatus'));
 document.getElementById('logoutBtn').addEventListener('click', ()=>{
   if(!supabaseClient) return;
   supabaseClient.auth.signOut();
 });
+
+// ============================================================
+// GATE DE LOGIN — pede cadastro proativamente após 1 minuto de uso
+// (em vez de surpreender no fim de um simulado, por exemplo)
+// ============================================================
+const GUEST_OK_KEY = 'clfc02_guest_ok';
+const TIME_GATE_DELAY_MS = 60 * 1000;
+let timeGateTriggered = false;
+let examTimerPausedByGate = false;
+
+function guestAllowed(){
+  return sessionStorage.getItem(GUEST_OK_KEY) === '1';
+}
+
+function maybeShowTimeGate(){
+  if(currentUser || guestAllowed() || timeGateTriggered) return;
+  timeGateTriggered = true;
+  showLoginGate();
+}
+
+function showLoginGate(){
+  document.getElementById('gateStatus').textContent = '';
+  document.getElementById('loginGateModal').style.display = 'flex';
+  // pausa o cronômetro do simulado completo enquanto a pessoa decide,
+  // pra não consumir o tempo de prova dela com o modal aberto
+  if(examState && examState.mode === 'full' && !examState.finished && examState.timerId){
+    clearInterval(examState.timerId);
+    examState.timerId = null;
+    examTimerPausedByGate = true;
+  }
+}
+function hideLoginGate(){
+  document.getElementById('loginGateModal').style.display = 'none';
+  if(examTimerPausedByGate && examState && !examState.finished){
+    examState.timerId = setInterval(tickExamTimer, 1000);
+  }
+  examTimerPausedByGate = false;
+}
+
+document.getElementById('gateCloseBtn').addEventListener('click', ()=>{
+  sessionStorage.setItem(GUEST_OK_KEY, '1');
+  hideLoginGate();
+});
+document.getElementById('gateSkipBtn').addEventListener('click', ()=>{
+  sessionStorage.setItem(GUEST_OK_KEY, '1');
+  hideLoginGate();
+});
+document.getElementById('gateGoogleBtn').addEventListener('click', ()=> attemptGoogleLogin());
+document.getElementById('gateMagicLinkBtn').addEventListener('click', ()=> attemptMagicLink('gateMagicEmailInput', 'gateMagicLinkBtn', 'gateStatus'));
 
 // ============================================================
 // INIT
@@ -727,3 +809,4 @@ buildChips();
 rebuildDeck();
 buildExamDomainChips();
 initAuth();
+setTimeout(maybeShowTimeGate, TIME_GATE_DELAY_MS);
