@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Estudo CLF-C02 · AWS Cloud Practitioner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1525;
+    --bg-elevated:#121F35;
+    --bg-card:#16223B;
+    --border:#243454;
+    --text-primary:#F5F7FA;
+    --text-secondary:#93A1B5;
+    --accent-amber:#FF9F1C;
+    --accent-teal:#2EC4B6;
+    --accent-coral:#FF6B6B;
+    --d1:#6FB1FF;
+    --d2:#FF9F1C;
+    --d3:#2EC4B6;
+    --d4:#B388FF;
+    --radius:16px;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family:var(--font-body);
+    min-height:100vh;
+  }
+  .wrap{
+    max-width:780px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+  header{margin-bottom:18px;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.08em;
+    color:var(--accent-amber);
+    text-transform:uppercase;
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-size:clamp(24px, 5vw, 32px);
+    font-weight:700;
+    margin:0 0 6px;
+    line-height:1.15;
+  }
+  .subtitle{
+    color:var(--text-secondary);
+    font-size:14px;
+    margin:0 0 18px;
+    line-height:1.5;
+  }
+
+  .weight-bar{
+    display:flex;
+    height:10px;
+    border-radius:999px;
+    overflow:hidden;
+    background:var(--bg-elevated);
+    margin-bottom:8px;
+  }
+  .weight-seg{position:relative; height:100%;}
+  .weight-seg-fill{height:100%; width:0%; background:rgba(255,255,255,0.55); transition:width .4s ease;}
+  .weight-legend{display:flex; flex-wrap:wrap; gap:10px 16px; margin-bottom:20px;}
+  .weight-legend-item{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); font-family:var(--font-mono);}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none;}
+
+  .auth-bar{
+    display:flex; align-items:center; flex-wrap:wrap; gap:10px;
+    background:var(--bg-elevated); border:1px solid var(--border); border-radius:12px;
+    padding:12px 14px; margin-bottom:18px; font-size:12.5px;
+  }
+  .auth-status{color:var(--text-secondary); font-family:var(--font-mono); font-size:11.5px;}
+  .auth-loggedout, .auth-loggedin{display:flex; align-items:center; flex-wrap:wrap; gap:8px; width:100%;}
+  .auth-or{color:var(--text-secondary); font-size:12px;}
+  .auth-email-input{
+    padding:8px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg-card); color:var(--text-primary); font-family:var(--font-body);
+    font-size:13px; flex:1; min-width:160px;
+  }
+  .btn-google{
+    background:#fff; color:#1f1f1f; border-color:#fff;
+    padding:9px 14px; font-size:13px;
+  }
+  .btn-google:hover{background:#f1f1f1; border-color:#f1f1f1;}
+  .auth-email{font-family:var(--font-mono); font-size:12.5px; color:var(--text-primary);}
+  #authLoggedOut button, #authLoggedIn button{font-size:13px; padding:9px 14px;}
+
+  .tabs{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:4px;
+    margin-bottom:24px;
+    border-bottom:1px solid var(--border);
+  }
+  .tab-btn{
+    font-family:var(--font-mono);
+    font-size:12px;
+    padding:10px 14px;
+    background:none;
+    border:none;
+    color:var(--text-secondary);
+    cursor:pointer;
+    white-space:nowrap;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+    transition:all .15s ease;
+  }
+  .tab-btn:hover{color:var(--text-primary);}
+  .tab-btn.active{color:var(--accent-amber); border-bottom-color:var(--accent-amber);}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;}
+  .chip{
+    font-family:var(--font-mono);
+    font-size:12px;
+    padding:8px 14px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--bg-elevated);
+    color:var(--text-secondary);
+    cursor:pointer;
+    transition:all .15s ease;
+    white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--accent-amber);}
+  .chip.active{background:var(--text-primary); color:var(--bg); border-color:var(--text-primary);}
+
+  .status-row{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px; font-size:13px; color:var(--text-secondary);
+  }
+  .status-row .domain-tag{font-family:var(--font-mono); font-weight:600;}
+
+  .card-stage{perspective:1400px; margin-bottom:20px;}
+  .card{
+    position:relative; width:100%; min-height:280px;
+    transform-style:preserve-3d; transition:transform .5s cubic-bezier(.2,.8,.2,1); cursor:pointer;
+  }
+  .card.flipped{transform:rotateY(180deg);}
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:var(--radius); border:1px solid var(--border);
+    padding:32px 28px; display:flex; flex-direction:column; justify-content:center;
+    background:var(--bg-card);
+  }
+  .face-front{background:linear-gradient(150deg, var(--bg-card), var(--bg-elevated));}
+  .face-back{transform:rotateY(180deg); background:var(--bg-elevated);}
+  .face-label{font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-secondary); margin-bottom:14px;}
+  .face-text{font-family:var(--font-display); font-size:clamp(17px, 3.4vw, 21px); font-weight:600; line-height:1.4;}
+  .face-back .face-text{font-family:var(--font-body); font-weight:400; font-size:15.5px; line-height:1.65; color:var(--text-primary);}
+  .flip-hint{position:absolute; bottom:16px; right:20px; font-family:var(--font-mono); font-size:11px; color:var(--text-secondary);}
+
+  .controls{display:flex; gap:10px; margin-bottom:18px;}
+  button{
+    font-family:var(--font-body); font-weight:600; font-size:14px;
+    border-radius:12px; border:1px solid var(--border);
+    background:var(--bg-elevated); color:var(--text-primary);
+    padding:12px 16px; cursor:pointer; transition:all .15s ease;
+  }
+  button:hover{border-color:var(--accent-amber);}
+  button:active{transform:scale(0.97);}
+  button:focus-visible{outline:2px solid var(--accent-amber); outline-offset:2px;}
+  .btn-nav{flex:1;}
+  .btn-icon{flex:none; width:44px; padding:0; display:flex; align-items:center; justify-content:center;}
+  .btn-primary{background:var(--accent-amber); color:var(--bg); border-color:var(--accent-amber);}
+
+  .mark-row{display:flex; gap:10px; margin-bottom:28px;}
+  .btn-know{flex:1; background:rgba(46,196,182,0.12); border-color:var(--accent-teal); color:var(--accent-teal);}
+  .btn-review{flex:1; background:rgba(255,107,107,0.1); border-color:var(--accent-coral); color:var(--accent-coral);}
+
+  .stats{border-top:1px solid var(--border); padding-top:20px;}
+  .stats-title{font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin-bottom:12px;}
+  .stats-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .stat-box{background:var(--bg-elevated); border:1px solid var(--border); border-radius:12px; padding:12px 14px;}
+  .stat-box .label{font-size:12px; color:var(--text-secondary); margin-bottom:4px;}
+  .stat-box .value{font-family:var(--font-display); font-size:18px; font-weight:700;}
+  .reset-link{display:block; margin-top:16px; font-size:12px; color:var(--text-secondary); text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; font-family:var(--font-body); font-weight:400;}
+  .reset-link:hover{color:var(--accent-coral);}
+
+  .exam-setup{display:flex; flex-direction:column; gap:18px;}
+  .setup-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:20px;}
+  .setup-card h3{font-family:var(--font-display); margin:0 0 6px; font-size:17px;}
+  .setup-card p{color:var(--text-secondary); font-size:13.5px; margin:0 0 14px; line-height:1.5;}
+  .question-box{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px 22px; margin-bottom:18px;}
+  .q-meta{display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:var(--text-secondary); margin-bottom:14px;}
+  .q-text{font-family:var(--font-display); font-size:17px; font-weight:600; line-height:1.4; margin-bottom:6px;}
+  .q-hint{font-size:12px; color:var(--accent-amber); margin-bottom:16px;}
+  .options{display:flex; flex-direction:column; gap:10px;}
+  .option{
+    display:flex; align-items:flex-start; gap:10px;
+    border:1px solid var(--border); border-radius:12px; padding:12px 14px;
+    cursor:pointer; font-size:14.5px; line-height:1.45; background:var(--bg-elevated);
+    transition:all .12s ease;
+  }
+  .option:hover{border-color:var(--accent-amber);}
+  .option.selected{border-color:var(--accent-amber); background:rgba(255,159,28,0.1);}
+  .option.correct{border-color:var(--accent-teal); background:rgba(46,196,182,0.12);}
+  .option.incorrect{border-color:var(--accent-coral); background:rgba(255,107,107,0.1);}
+  .option input{margin-top:3px; flex:none;}
+  .q-explain{
+    margin-top:16px; padding:14px; border-radius:12px;
+    background:var(--bg-elevated); border:1px solid var(--border);
+    font-size:13.5px; line-height:1.55; color:var(--text-secondary); display:none;
+  }
+  .q-explain.show{display:block;}
+  .q-explain b{color:var(--text-primary);}
+  .exam-footer{display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:8px;}
+  .timer{font-family:var(--font-mono); font-size:13px; color:var(--text-secondary);}
+  .timer.low{color:var(--accent-coral);}
+  .progress-line{height:4px; background:var(--bg-elevated); border-radius:999px; overflow:hidden; margin-bottom:18px;}
+  .progress-line-fill{height:100%; background:var(--accent-amber); width:0%; transition:width .3s ease;}
+
+  .result-score{
+    text-align:center; padding:32px 20px; background:var(--bg-card);
+    border:1px solid var(--border); border-radius:var(--radius); margin-bottom:20px;
+  }
+  .result-score .big{font-family:var(--font-display); font-size:48px; font-weight:700;}
+  .result-score .pass{color:var(--accent-teal);}
+  .result-score .fail{color:var(--accent-coral);}
+  .result-domain-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--border); font-size:13.5px;
+  }
+  .result-domain-row:last-child{border-bottom:none;}
+
+  .glossary-search{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+    background:var(--bg-elevated); color:var(--text-primary); font-family:var(--font-body);
+    font-size:14px; margin-bottom:18px;
+  }
+  .glossary-search:focus{outline:2px solid var(--accent-amber); outline-offset:1px;}
+  .glossary-list{display:flex; flex-direction:column; gap:10px;}
+  .glossary-item{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+    padding:14px 16px;
+  }
+  .glossary-item .term{font-family:var(--font-mono); font-weight:600; color:var(--accent-amber); font-size:13.5px; margin-bottom:4px;}
+  .glossary-item .def{font-size:14px; line-height:1.5; color:var(--text-primary);}
+
+  .cheat-domain{margin-bottom:28px;}
+  .cheat-domain h3{
+    font-family:var(--font-display); font-size:16px; margin:0 0 12px;
+    padding-bottom:8px; border-bottom:2px solid var(--border);
+  }
+  .cheat-domain ul{margin:0; padding-left:20px; color:var(--text-primary); font-size:14px; line-height:1.7;}
+  .cheat-domain li b{color:var(--accent-amber);}
+
+  .weak-row{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+    padding:16px; margin-bottom:12px;
+  }
+  .weak-row-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .weak-row-head .name{font-family:var(--font-display); font-weight:600; font-size:14.5px;}
+  .weak-row-head .pct{font-family:var(--font-mono); font-size:13px;}
+  .weak-bar{height:8px; background:var(--bg-elevated); border-radius:999px; overflow:hidden; margin-bottom:8px;}
+  .weak-bar-fill{height:100%; border-radius:999px;}
+  .weak-note{font-size:12.5px; color:var(--text-secondary); line-height:1.5;}
+  .empty-state{color:var(--text-secondary); font-size:14px; text-align:center; padding:40px 20px; line-height:1.6;}
+
+  footer{margin-top:32px; font-size:12px; color:var(--text-secondary); text-align:center; line-height:1.6;}
+
+  @media (max-width:480px){
+    .controls{flex-wrap:wrap;}
+    .btn-icon{order:-1;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">AWS Certified Cloud Practitioner · CLF-C02</p>
+    <h1>Central de estudos</h1>
+    <p class="subtitle">Flashcards, simulados, glossário e resumo — tudo organizado pelo peso real dos 4 domínios do exame oficial. Sem cadastro, sem paywall, roda 100% no navegador.</p>
+
+    <div class="weight-bar" id="weightBar"></div>
+    <div class="weight-legend" id="weightLegend"></div>
+
+    <div class="auth-bar" id="authBar">
+      <span class="auth-status" id="authStatus">Carregando...</span>
+      <div class="auth-loggedout" id="authLoggedOut" style="display:none;">
+        <button class="btn-google" id="googleLoginBtn">Entrar com Google</button>
+        <span class="auth-or">ou receba um link por e-mail</span>
+        <input type="email" id="magicEmailInput" class="auth-email-input" placeholder="seu@email.com">
+        <button id="magicLinkBtn">Enviar link</button>
+      </div>
+      <div class="auth-loggedin" id="authLoggedIn" style="display:none;">
+        <span id="authEmail" class="auth-email"></span>
+        <button class="reset-link" id="logoutBtn">Sair</button>
+      </div>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab-btn active" data-view="flashcards">Flashcards</button>
+      <button class="tab-btn" data-view="exam">Simulado</button>
+      <button class="tab-btn" data-view="weak">Pontos fracos</button>
+      <button class="tab-btn" data-view="glossary">Glossário</button>
+      <button class="tab-btn" data-view="cheatsheet">Resumo</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ===== FLASHCARDS ===== -->
+    <section class="view active" id="view-flashcards">
+      <div class="chips" id="chips"></div>
+
+      <div class="status-row">
+        <span id="counter">Card 1 de 100</span>
+        <span class="domain-tag" id="domainTag">D1</span>
+      </div>
+
+      <div class="card-stage">
+        <div class="card" id="card">
+          <div class="face face-front">
+            <p class="face-label">Pergunta</p>
+            <p class="face-text" id="frontText"></p>
+            <span class="flip-hint">toque para virar</span>
+          </div>
+          <div class="face face-back">
+            <p class="face-label">Resposta</p>
+            <p class="face-text" id="backText"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-icon" id="prevBtn" aria-label="Anterior">←</button>
+        <button class="btn-nav" id="flipBtn">Virar card</button>
+        <button class="btn-icon" id="shuffleBtn" aria-label="Embaralhar">⤮</button>
+        <button class="btn-icon" id="nextBtn" aria-label="Próximo">→</button>
+      </div>
+
+      <div class="mark-row">
+        <button class="btn-review" id="reviewBtn">Revisar de novo</button>
+        <button class="btn-know" id="knowBtn">Já sei ✓</button>
+      </div>
+
+      <div class="stats">
+        <p class="stats-title">Seu progresso</p>
+        <div class="stats-grid" id="statsGrid"></div>
+        <button class="reset-link" id="resetBtn">Zerar progresso dos flashcards</button>
+      </div>
+    </section>
+
+    <!-- ===== SIMULADO ===== -->
+    <section class="view" id="view-exam">
+      <div id="examSetup" class="exam-setup">
+        <div class="setup-card">
+          <h3>Simulado completo</h3>
+          <p>65 questões, 90 minutos, na mesma proporção de peso do exame real (D1: 16 · D2: 19 · D3: 22 · D4: 8). Nota final em escala de 100–1000, igual à AWS.</p>
+          <button class="btn-primary" id="startFullExam">Começar simulado completo</button>
+        </div>
+        <div class="setup-card">
+          <h3>Praticar por domínio</h3>
+          <p>Questões só de um domínio específico, sem cronômetro — bom pra treinar um ponto fraco isoladamente.</p>
+          <div class="chips" id="examDomainChips"></div>
+          <button id="startDomainExam">Começar prática do domínio</button>
+        </div>
+      </div>
+
+      <div id="examRunning" style="display:none;">
+        <div class="status-row">
+          <span id="examCounter">Questão 1 de 65</span>
+          <span class="timer" id="examTimer"></span>
+        </div>
+        <div class="progress-line"><div class="progress-line-fill" id="examProgressFill"></div></div>
+        <div class="question-box">
+          <div class="q-meta">
+            <span id="examDomainTag">D1 · Cloud Concepts</span>
+            <span id="examTypeTag">Escolha única</span>
+          </div>
+          <p class="q-text" id="examQText"></p>
+          <p class="q-hint" id="examMultiHint" style="display:none;">Selecione todas as alternativas corretas</p>
+          <div class="options" id="examOptions"></div>
+          <div class="q-explain" id="examExplain"></div>
+        </div>
+        <div class="exam-footer">
+          <button id="examPrevBtn">← Anterior</button>
+          <button class="btn-primary" id="examNextBtn">Confirmar e avançar</button>
+        </div>
+      </div>
+
+      <div id="examResult" style="display:none;"></div>
+    </section>
+
+    <!-- ===== PONTOS FRACOS ===== -->
+    <section class="view" id="view-weak">
+      <div id="weakContent"></div>
+    </section>
+
+    <!-- ===== GLOSSÁRIO ===== -->
+    <section class="view" id="view-glossary">
+      <input type="text" class="glossary-search" id="glossarySearch" placeholder="Buscar termo ou sigla (ex: IAM, VPC, RTO)...">
+      <div class="glossary-list" id="glossaryList"></div>
+    </section>
+
+    <!-- ===== RESUMO / CHEAT SHEET ===== -->
+    <section class="view" id="view-cheatsheet">
+      <div id="cheatsheetContent"></div>
+    </section>
+  </main>
+
+  <footer>
+    Conteúdo baseado no Exam Guide oficial CLF-C02 (AWS). Não substitui a leitura da documentação oficial.<br>
+    Feito por Felipe · stack vanilla HTML/CSS/JS, sem dependências.
+  </footer>
+</div>
+
+<script>
+const DOMAINS = {
+  1: { name: "Conceitos de Nuvem", short: "Cloud Concepts", weight: 24, color: "var(--d1)" },
+  2: { name: "Segurança e Conformidade", short: "Security & Compliance", weight: 30, color: "var(--d2)" },
+  3: { name: "Tecnologia e Serviços de Nuvem", short: "Cloud Tech & Services", weight: 34, color: "var(--d3)" },
+  4: { name: "Faturamento, Preços e Suporte", short: "Billing, Pricing & Support", weight: 12, color: "var(--d4)" }
+};
+const CARDS = [];
+const EXAM_QUESTIONS = [];
+const GLOSSARY = [];
+const CHEATSHEET = {};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="cards-data.js"></script>
+<script src="exam-questions.js"></script>
+<script src="glossary-data.js"></script>
+<script src="cheatsheet-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
