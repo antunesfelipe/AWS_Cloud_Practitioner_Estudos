@@ -444,20 +444,18 @@
   </footer>
 </div>
 
-<div class="gate-overlay" id="loginGateModal" style="display:none;">
+<div class="gate-overlay" id="loginGateModal" style="display:flex;">
   <div class="gate-box">
-    <button class="gate-close" id="gateCloseBtn" aria-label="Fechar">×</button>
-    <p class="eyebrow">Salvar progresso</p>
-    <h3>Crie sua conta gratuita</h3>
-    <p class="gate-desc">Você já está estudando há 1 minuto — vale a pena criar uma conta agora pra não perder esse progresso. Sem login, tudo que você marcar fica só nesta sessão e some se fechar a aba. Com login, sincroniza em qualquer dispositivo.</p>
-    <div class="auth-loggedout" style="width:100%; justify-content:center;">
+    <p class="eyebrow">Login obrigatório</p>
+    <h3 id="gateTitle">Verificando login...</h3>
+    <p class="gate-desc" id="gateDesc">Só um instante.</p>
+    <div class="auth-loggedout" id="gateLoginOptions" style="width:100%; justify-content:center; display:none;">
       <button class="btn-google" id="gateGoogleBtn">Entrar com Google</button>
       <span class="auth-or">ou receba um link por e-mail</span>
       <input type="email" id="gateMagicEmailInput" class="auth-email-input" placeholder="seu@email.com">
       <button id="gateMagicLinkBtn">Enviar link</button>
     </div>
     <p class="gate-status" id="gateStatus"></p>
-    <button class="gate-skip" id="gateSkipBtn">Continuar sem salvar por agora</button>
   </div>
 </div>
 

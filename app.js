@@ -612,11 +612,13 @@ function isSupabaseConfigured(){
 async function initAuth(){
   const statusEl = document.getElementById('authStatus');
   if(!isSupabaseConfigured()){
-    statusEl.textContent = 'Progresso salvo só neste navegador (configure o Supabase pra sincronizar entre dispositivos — veja SETUP.md)';
+    statusEl.textContent = 'Progresso salvo só neste navegador (configure o Supabase pra exigir login — veja SETUP.md)';
+    hideLoginGate(); // sem Supabase configurado, não dá pra exigir login — libera o uso
     return;
   }
   if(typeof window.supabase === 'undefined'){
-    statusEl.textContent = 'Não foi possível carregar a sincronização (sem conexão?). Progresso salvo só neste navegador.';
+    statusEl.textContent = 'Não foi possível carregar o login (sem conexão?). Tente recarregar a página.';
+    showLoginGate(true); // mostra o gate com um aviso de erro, mas sem opção de login funcional
     return;
   }
   try{
@@ -631,7 +633,8 @@ async function initAuth(){
     handleAuthChange(session);
   }catch(e){
     console.error('Erro ao iniciar Supabase:', e);
-    statusEl.textContent = 'Erro ao conectar com a sincronização. Progresso salvo só neste navegador.';
+    statusEl.textContent = 'Erro ao conectar com o login. Tente recarregar a página.';
+    showLoginGate(true);
   }
 }
 
@@ -641,8 +644,10 @@ async function handleAuthChange(session){
   document.getElementById('authLoggedIn').style.display = currentUser ? 'flex' : 'none';
   if(currentUser){
     document.getElementById('authEmail').textContent = currentUser.email || 'Conectado';
-    await syncOnLogin();
     hideLoginGate();
+    await syncOnLogin();
+  } else {
+    showLoginGate();
   }
 }
 
@@ -753,29 +758,24 @@ document.getElementById('logoutBtn').addEventListener('click', ()=>{
 });
 
 // ============================================================
-// GATE DE LOGIN — pede cadastro proativamente após 1 minuto de uso
-// (em vez de surpreender no fim de um simulado, por exemplo)
+// GATE DE LOGIN — obrigatório: a pessoa só usa o app depois de logar
 // ============================================================
-const GUEST_OK_KEY = 'clfc02_guest_ok';
-const TIME_GATE_DELAY_MS = 60 * 1000;
-let timeGateTriggered = false;
-let examTimerPausedByGate = false;
-
-function guestAllowed(){
-  return sessionStorage.getItem(GUEST_OK_KEY) === '1';
-}
-
-function maybeShowTimeGate(){
-  if(currentUser || guestAllowed() || timeGateTriggered) return;
-  timeGateTriggered = true;
-  showLoginGate();
-}
-
-function showLoginGate(){
+function showLoginGate(loadError){
+  const title = document.getElementById('gateTitle');
+  const desc = document.getElementById('gateDesc');
+  const options = document.getElementById('gateLoginOptions');
+  if(loadError){
+    title.textContent = 'Não foi possível carregar o login';
+    desc.textContent = 'Recarregue a página pra tentar de novo.';
+    options.style.display = 'none';
+  } else {
+    title.textContent = 'Crie sua conta gratuita pra estudar';
+    desc.textContent = 'É rápido e sem senha: entra com Google ou recebe um link no seu e-mail. Seu progresso fica salvo e sincroniza em qualquer dispositivo.';
+    options.style.display = 'flex';
+  }
   document.getElementById('gateStatus').textContent = '';
   document.getElementById('loginGateModal').style.display = 'flex';
-  // pausa o cronômetro do simulado completo enquanto a pessoa decide,
-  // pra não consumir o tempo de prova dela com o modal aberto
+  // pausa o cronômetro do simulado completo enquanto o gate está visível
   if(examState && examState.mode === 'full' && !examState.finished && examState.timerId){
     clearInterval(examState.timerId);
     examState.timerId = null;
@@ -790,16 +790,9 @@ function hideLoginGate(){
   examTimerPausedByGate = false;
 }
 
-document.getElementById('gateCloseBtn').addEventListener('click', ()=>{
-  sessionStorage.setItem(GUEST_OK_KEY, '1');
-  hideLoginGate();
-});
-document.getElementById('gateSkipBtn').addEventListener('click', ()=>{
-  sessionStorage.setItem(GUEST_OK_KEY, '1');
-  hideLoginGate();
-});
 document.getElementById('gateGoogleBtn').addEventListener('click', ()=> attemptGoogleLogin());
 document.getElementById('gateMagicLinkBtn').addEventListener('click', ()=> attemptMagicLink('gateMagicEmailInput', 'gateMagicLinkBtn', 'gateStatus'));
+let examTimerPausedByGate = false;
 
 // ============================================================
 // INIT
@@ -809,4 +802,3 @@ buildChips();
 rebuildDeck();
 buildExamDomainChips();
 initAuth();
-setTimeout(maybeShowTimeGate, TIME_GATE_DELAY_MS);
