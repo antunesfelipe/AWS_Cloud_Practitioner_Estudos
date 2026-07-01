@@ -347,6 +347,7 @@
       <button class="tab-btn" data-view="weak">Pontos fracos</button>
       <button class="tab-btn" data-view="glossary">Glossário</button>
       <button class="tab-btn" data-view="cheatsheet">Resumo</button>
+      <button class="tab-btn" data-view="course">Curso re/Start</button>
     </nav>
   </header>
 
@@ -449,10 +450,53 @@
     <section class="view" id="view-cheatsheet">
       <div id="cheatsheetContent"></div>
     </section>
+
+    <!-- ===== CURSO RE/START ===== -->
+    <section class="view" id="view-course">
+      <p class="subtitle" style="margin-bottom:16px;">Temas mais amplos e práticos do curso AWS re/Start — vão além do escopo da prova CLF-C02, organizados pelos módulos do curso.</p>
+      <div class="chips" id="courseChips"></div>
+
+      <div class="status-row">
+        <span id="courseCounter">Card 1 de 1</span>
+        <span class="domain-tag" id="courseModuleTag">M1</span>
+      </div>
+
+      <div class="card-stage">
+        <div class="card" id="courseCard">
+          <div class="face face-front">
+            <p class="face-label">Pergunta</p>
+            <p class="face-text" id="courseFrontText"></p>
+            <span class="flip-hint">toque para virar</span>
+          </div>
+          <div class="face face-back">
+            <p class="face-label">Resposta</p>
+            <p class="face-text" id="courseBackText"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-icon" id="coursePrevBtn" aria-label="Anterior">←</button>
+        <button class="btn-nav" id="courseFlipBtn">Virar card</button>
+        <button class="btn-icon" id="courseShuffleBtn" aria-label="Embaralhar">⤮</button>
+        <button class="btn-icon" id="courseNextBtn" aria-label="Próximo">→</button>
+      </div>
+
+      <div class="mark-row">
+        <button class="btn-review" id="courseReviewBtn">Revisar de novo</button>
+        <button class="btn-know" id="courseKnowBtn">Já sei ✓</button>
+      </div>
+
+      <div class="stats">
+        <p class="stats-title">Seu progresso</p>
+        <div class="stats-grid" id="courseStatsGrid"></div>
+        <button class="reset-link" id="courseResetBtn">Zerar progresso do curso</button>
+      </div>
+    </section>
   </main>
 
   <footer>
-    Conteúdo baseado no Exam Guide oficial CLF-C02 (AWS). Não substitui a leitura da documentação oficial.<br>
+    Conteúdo baseado no Exam Guide oficial CLF-C02 (AWS) e nos módulos do curso AWS re/Start. Não substitui a leitura da documentação oficial nem o conteúdo do curso.<br>
     Feito por Felipe Antunes · Aluno Escola da Nuvem Maio/2026 BRSAO251
   </footer>
 </div>
@@ -489,6 +533,24 @@ const CARDS = [];
 const EXAM_QUESTIONS = [];
 const GLOSSARY = [];
 const CHEATSHEET = {};
+const COURSE_MODULES = {
+  1:  { name: "Redes na AWS",                       color: "#6FB1FF" },
+  2:  { name: "Introdução à Segurança",              color: "#FF9F1C" },
+  3:  { name: "Bases de Dados",                      color: "#2EC4B6" },
+  4:  { name: "Arquitetura AWS",                     color: "#B388FF" },
+  5:  { name: "Operações de Sistema",                color: "#FF6B6B" },
+  6:  { name: "Ferramentas e Automação",             color: "#6FB1FF" },
+  7:  { name: "Servidores",                          color: "#FF9F1C" },
+  8:  { name: "Escala e Resolução de Nomes",         color: "#2EC4B6" },
+  9:  { name: "Sem Servidor e Contêineres",          color: "#B388FF" },
+  10: { name: "Serviços de Banco de Dados",          color: "#FF6B6B" },
+  11: { name: "Serviços de Rede",                    color: "#6FB1FF" },
+  12: { name: "Armazenamento e Arquivamento",        color: "#FF9F1C" },
+  13: { name: "Monitoramento e Segurança",           color: "#2EC4B6" },
+  14: { name: "Gerenciando o Consumo de Recursos",   color: "#B388FF" },
+  15: { name: "Implantação Automática e Repetível",  color: "#FF6B6B" }
+};
+const COURSE_CARDS = [];
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
@@ -496,6 +558,7 @@ const CHEATSHEET = {};
 <script src="exam-questions.js"></script>
 <script src="glossary-data.js"></script>
 <script src="cheatsheet-data.js"></script>
+<script src="course-cards.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -19,6 +19,7 @@ create table if not exists public.user_progress (
   user_id uuid primary key references auth.users(id) on delete cascade,
   flashcards jsonb not null default '{}'::jsonb,
   exam_stats jsonb not null default '{}'::jsonb,
+  course_progress jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
 
@@ -36,6 +37,11 @@ create policy "Users can update own progress"
   on public.user_progress for update
   using (auth.uid() = user_id);
 ```
+
+> **Já criou essa tabela antes?** Só rode este comando extra no SQL Editor pra adicionar a nova coluna sem perder nada do que já existe:
+> ```sql
+> alter table public.user_progress add column if not exists course_progress jsonb not null default '{}'::jsonb;
+> ```
 
 Isso cria a tabela e garante (via Row Level Security) que cada pessoa só consegue ler/escrever a própria linha — mesmo que mil pessoas usem o mesmo app publicado, ninguém vê o progresso de ninguém.
 
@@ -55,11 +61,13 @@ No painel: **Authentication → URL Configuration**
 - Em **Site URL**, coloque a URL do seu site no Netlify (ex: `https://seu-site.netlify.app`)
 - Em **Redirect URLs**, adicione a mesma URL
 
-Sem isso, o link mágico e o login com Google redirecionam errado depois do deploy.
+Sem isso, o login com e-mail/senha e com Google redirecionam errado depois do deploy.
 
-## 5. Login por e-mail (link mágico) — já funciona sem configurar nada a mais
+## 5. Login por e-mail e senha — já funciona sem configurar nada a mais
 
-O método de "link mágico" (`signInWithOtp`) usa o provedor de e-mail que já vem habilitado por padrão no Supabase. Não precisa fazer mais nada — depois do passo 4, já funciona.
+O cadastro com e-mail e senha (`signUp` / `signInWithPassword`) já vem habilitado por padrão no Supabase. Só uma recomendação:
+
+- Vá em **Authentication → Providers → Email** e desative o toggle **Confirm email**. Sem isso, quem cria conta precisa clicar num e-mail de confirmação antes de conseguir entrar — desativando, a pessoa já entra na hora, sem depender de e-mail chegar.
 
 ## 6. Login com Google (opcional, dá mais trabalho)
 
@@ -76,7 +84,7 @@ Se quiser o botão "Entrar com Google" funcionando:
 5. Copie o **Client ID** e o **Client Secret** gerados
 6. No Supabase: **Authentication → Providers → Google** → habilite, cole Client ID e Client Secret, salve
 
-Se você não fizer esse passo, o botão "Entrar com Google" simplesmente não vai funcionar — mas o link mágico por e-mail continua funcionando normalmente como alternativa, sem precisar disso.
+Se você não fizer esse passo, o botão "Entrar com Google" simplesmente não vai funcionar — mas o cadastro com e-mail e senha continua funcionando normalmente como alternativa, sem precisar disso.
 
 ## 7. Deploy no Netlify
 
@@ -87,6 +95,6 @@ Sobe os arquivos pro GitHub (incluindo o `supabase-config.js` já preenchido) e 
 ## Como funciona, na prática
 
 - Sem login: tudo salvo só no `localStorage` do navegador (como já era antes)
-- Ao logar (Google ou link mágico) pela primeira vez num navegador: se a nuvem ainda não tem nada salvo pra essa conta, o progresso local desse navegador é enviado pra nuvem
+- Ao criar conta ou logar pela primeira vez num navegador: se a nuvem ainda não tem nada salvo pra essa conta, o progresso local desse navegador é enviado pra nuvem
 - Ao logar num navegador/dispositivo diferente com a mesma conta: o progresso da nuvem substitui o local — ou seja, a nuvem é sempre a fonte da verdade entre dispositivos depois do primeiro envio
-- Toda vez que você marca um flashcard ou termina um simulado estando logado, o progresso é salvo automaticamente na nuvem (com um pequeno delay de ~1s)
+- Toda vez que você marca um flashcard (de prova ou do curso) ou termina um simulado estando logado, o progresso é salvo automaticamente na nuvem (com um pequeno delay de ~1s)

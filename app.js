@@ -4,6 +4,7 @@
 
 const FLASH_STORAGE_KEY = 'clfc02_progress_v1';
 const EXAM_STATS_KEY = 'clfc02_exam_stats_v1';
+const COURSE_STORAGE_KEY = 'clfc02_course_progress_v1';
 
 // ---------- Utilitários compartilhados ----------
 function loadJSON(key, fallback){
@@ -211,6 +212,140 @@ document.addEventListener('keydown', (e)=>{
   if(e.code === 'ArrowLeft'){ prevCard(); }
   if(e.code === 'KeyK'){ markCard('known'); }
   if(e.code === 'KeyR'){ markCard('review'); }
+});
+
+// ============================================================
+// FLASHCARDS DO CURSO RE/START (módulos, não domínios de prova)
+// ============================================================
+let ccState = {
+  filter: 'all',
+  deck: [],
+  pos: 0,
+  flipped: false,
+  progress: loadJSON(COURSE_STORAGE_KEY, {})
+};
+
+function courseCardsByModule(m){ return COURSE_CARDS.filter(c => c.m === m); }
+
+function buildCourseChips(){
+  const chips = document.getElementById('courseChips');
+  chips.innerHTML = '';
+  const allChip = document.createElement('button');
+  allChip.className = 'chip active';
+  allChip.textContent = `Todos (${COURSE_CARDS.length})`;
+  allChip.dataset.filter = 'all';
+  chips.appendChild(allChip);
+
+  Object.entries(COURSE_MODULES).forEach(([id, mod])=>{
+    const n = courseCardsByModule(Number(id)).length;
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = `M${id} (${n})`;
+    chip.title = mod.name;
+    chip.dataset.filter = id;
+    chips.appendChild(chip);
+  });
+
+  chips.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.chip');
+    if(!btn) return;
+    [...chips.children].forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    ccState.filter = btn.dataset.filter === 'all' ? 'all' : Number(btn.dataset.filter);
+    rebuildCourseDeck();
+  });
+}
+
+function rebuildCourseDeck(){
+  const source = ccState.filter === 'all' ? COURSE_CARDS : courseCardsByModule(ccState.filter);
+  ccState.deck = source.map(c => c.id);
+  ccState.pos = 0;
+  ccState.flipped = false;
+  renderCourseCard();
+}
+function shuffleCourseDeck(){
+  ccState.deck = shuffleArray(ccState.deck);
+  ccState.pos = 0;
+  ccState.flipped = false;
+  renderCourseCard();
+}
+function currentCourseCard(){
+  const id = ccState.deck[ccState.pos];
+  return COURSE_CARDS.find(c => c.id === id);
+}
+function renderCourseCard(){
+  const card = currentCourseCard();
+  if(!card) return;
+  document.getElementById('courseFrontText').textContent = card.q;
+  document.getElementById('courseBackText').textContent = card.a;
+  document.getElementById('courseCounter').textContent = `Card ${ccState.pos+1} de ${ccState.deck.length}`;
+  const tag = document.getElementById('courseModuleTag');
+  tag.textContent = `M${card.m} · ${COURSE_MODULES[card.m].name}`;
+  tag.style.color = COURSE_MODULES[card.m].color;
+  document.getElementById('courseCard').classList.toggle('flipped', ccState.flipped);
+  renderCourseStats();
+}
+function flipCourseCard(){
+  ccState.flipped = !ccState.flipped;
+  document.getElementById('courseCard').classList.toggle('flipped', ccState.flipped);
+}
+function nextCourseCard(){
+  ccState.pos = (ccState.pos + 1) % ccState.deck.length;
+  ccState.flipped = false;
+  renderCourseCard();
+}
+function prevCourseCard(){
+  ccState.pos = (ccState.pos - 1 + ccState.deck.length) % ccState.deck.length;
+  ccState.flipped = false;
+  renderCourseCard();
+}
+function markCourseCard(status){
+  const card = currentCourseCard();
+  ccState.progress[card.id] = status;
+  saveJSON(COURSE_STORAGE_KEY, ccState.progress);
+  nextCourseCard();
+  scheduleSync();
+}
+function renderCourseStats(){
+  const grid = document.getElementById('courseStatsGrid');
+  grid.innerHTML = '';
+  const totalKnown = Object.values(ccState.progress).filter(v=>v==='known').length;
+  const totalSeen = Object.keys(ccState.progress).length;
+
+  const overall = document.createElement('div');
+  overall.className = 'stat-box';
+  overall.innerHTML = `<div class="label">No geral</div><div class="value">${totalKnown}/${COURSE_CARDS.length} já sei</div>`;
+  grid.appendChild(overall);
+
+  const seen = document.createElement('div');
+  seen.className = 'stat-box';
+  seen.innerHTML = `<div class="label">Cards revisados</div><div class="value">${totalSeen}/${COURSE_CARDS.length}</div>`;
+  grid.appendChild(seen);
+}
+function resetCourseProgress(){
+  if(!confirm('Isso vai apagar o progresso dos flashcards do curso. Confirmar?')) return;
+  ccState.progress = {};
+  saveJSON(COURSE_STORAGE_KEY, ccState.progress);
+  renderCourseStats();
+  scheduleSync();
+}
+
+document.getElementById('courseCard').addEventListener('click', flipCourseCard);
+document.getElementById('courseFlipBtn').addEventListener('click', flipCourseCard);
+document.getElementById('courseNextBtn').addEventListener('click', nextCourseCard);
+document.getElementById('coursePrevBtn').addEventListener('click', prevCourseCard);
+document.getElementById('courseShuffleBtn').addEventListener('click', shuffleCourseDeck);
+document.getElementById('courseKnowBtn').addEventListener('click', ()=>markCourseCard('known'));
+document.getElementById('courseReviewBtn').addEventListener('click', ()=>markCourseCard('review'));
+document.getElementById('courseResetBtn').addEventListener('click', resetCourseProgress);
+
+document.addEventListener('keydown', (e)=>{
+  if(!document.getElementById('view-course').classList.contains('active')) return;
+  if(e.code === 'Space'){ e.preventDefault(); flipCourseCard(); }
+  if(e.code === 'ArrowRight'){ nextCourseCard(); }
+  if(e.code === 'ArrowLeft'){ prevCourseCard(); }
+  if(e.code === 'KeyK'){ markCourseCard('known'); }
+  if(e.code === 'KeyR'){ markCourseCard('review'); }
 });
 
 // ============================================================
@@ -660,7 +795,7 @@ async function syncOnLogin(){
   try{
     const { data, error } = await supabaseClient
       .from('user_progress')
-      .select('flashcards, exam_stats')
+      .select('flashcards, exam_stats, course_progress')
       .eq('user_id', currentUser.id)
       .maybeSingle();
     if(error) throw error;
@@ -670,7 +805,10 @@ async function syncOnLogin(){
       fcState.progress = data.flashcards || {};
       saveJSON(FLASH_STORAGE_KEY, fcState.progress);
       saveJSON(EXAM_STATS_KEY, data.exam_stats || emptyExamStats());
+      ccState.progress = data.course_progress || {};
+      saveJSON(COURSE_STORAGE_KEY, ccState.progress);
       rebuildDeck();
+      rebuildCourseDeck();
       updateWeightBarFill();
     } else {
       // primeiro login neste navegador: envia o progresso local pra nuvem
@@ -697,6 +835,7 @@ async function pushProgressNow(){
       user_id: currentUser.id,
       flashcards: fcState.progress,
       exam_stats: loadJSON(EXAM_STATS_KEY, emptyExamStats()),
+      course_progress: ccState.progress,
       updated_at: new Date().toISOString()
     });
   }catch(e){
@@ -852,4 +991,6 @@ buildWeightBar();
 buildChips();
 rebuildDeck();
 buildExamDomainChips();
+buildCourseChips();
+rebuildCourseDeck();
 initAuth();

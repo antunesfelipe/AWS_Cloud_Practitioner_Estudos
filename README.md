@@ -9,7 +9,7 @@ App de estudo completo pro AWS Certified Cloud Practitioner (CLF-C02). Vanilla H
 - Flip 3D, filtro por domínio, embaralhar, atalhos de teclado (espaço vira, ←/→ navega, K = já sei, R = revisar)
 
 **Simulado**
-- 85 questões de múltipla escolha/múltipla resposta no banco, no estilo da prova real
+- 165 questões de múltipla escolha/múltipla resposta no banco, no estilo da prova real — com esse tamanho, simulados repetidos costumam trazer boa parte de questões diferentes entre si
 - **Simulado completo**: sorteia 65 questões na mesma proporção de peso do exame (D1:16 D2:19 D3:22 D4:8), com cronômetro de 90 minutos e nota final em escala 100–1000 (mínimo 700 pra passar)
 - **Prática por domínio**: até 20 questões de um domínio específico, sem cronômetro
 - Alternativas embaralhadas a cada simulado (a posição da resposta certa não se repete)
@@ -26,10 +26,14 @@ App de estudo completo pro AWS Certified Cloud Practitioner (CLF-C02). Vanilla H
 - Pontos-chave condensados por domínio, pra revisão rápida nos últimos dias antes da prova
 - Dicas práticas pro dia do exame
 
-Tudo salvo no navegador (localStorage) por padrão — e, se você configurar o Supabase (veja `SETUP.md`), também sincronizado na nuvem entre dispositivos via login com Google ou link mágico por e-mail.
+**Curso re/Start**
+- 82 flashcards organizados pelos 15 módulos do curso AWS re/Start (Escola da Nuvem) — cobre temas mais amplos e práticos que vão além do escopo da prova CLF-C02 (CLI, CloudFormation, Auto Scaling, Lambda, containers, troubleshooting de rede, etc.)
+- Mesma mecânica de flip/progresso dos flashcards de prova, mas com filtro por módulo do curso em vez de domínio de exame
+
+Tudo salvo no navegador (localStorage) por padrão — e, se você configurar o Supabase (veja `SETUP.md`), também sincronizado na nuvem entre dispositivos via login com Google ou e-mail e senha.
 
 **Login e sincronização entre dispositivos**
-- Sem precisar de senha: entra com Google ou recebe um link mágico no e-mail
+- Entra com Google ou com e-mail e senha (cadastro simples, sem confirmação por e-mail se você desativar essa opção no Supabase)
 - Progresso (flashcards + estatísticas de simulado) sincroniza automaticamente entre qualquer navegador/computador logado na mesma conta
 - Funciona normalmente mesmo sem configurar — fica só salvo localmente até você configurar o Supabase
 - Passo a passo completo de configuração em **`SETUP.md`**
