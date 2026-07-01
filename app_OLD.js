@@ -705,27 +705,12 @@ function friendlyAuthError(error){
   if(!error) return '';
   const msg = (error.message || '').toLowerCase();
   if(msg.includes('provider is not enabled') || error.code === 'validation_failed'){
-    return 'Login com Google ainda não foi configurado neste projeto.';
-  }
-  if(msg.includes('invalid login credentials')){
-    return 'E-mail ou senha incorretos.';
-  }
-  if(msg.includes('already registered') || msg.includes('already exists') || msg.includes('user already')){
-    return 'Esse e-mail já tem conta — clica em "Entrar" em vez de "Criar conta".';
-  }
-  if(msg.includes('password should be at least') || msg.includes('password is too short')){
-    return 'A senha precisa ter pelo menos 6 caracteres.';
-  }
-  if(msg.includes('unable to validate email') || msg.includes('invalid email')){
-    return 'Esse e-mail não parece válido.';
-  }
-  if(msg.includes('email not confirmed')){
-    return 'Confirme seu e-mail antes de entrar (confira a caixa de entrada, inclusive spam).';
+    return 'Login com Google ainda não foi configurado neste projeto. Use o link por e-mail por enquanto (veja o SETUP.md).';
   }
   if(msg.includes('rate limit')){
     return 'Muitas tentativas seguidas — espera um minuto e tenta de novo.';
   }
-  return 'Não deu certo agora. Confira os dados e tenta de novo.';
+  return 'Não deu certo agora. Tenta de novo em instantes.';
 }
 
 async function attemptGoogleLogin(){
@@ -742,49 +727,31 @@ async function attemptGoogleLogin(){
   }
 }
 
-async function attemptSignIn(emailId, passId, btnId, statusId){
+async function attemptMagicLink(inputId, btnId, statusId){
   if(!supabaseClient) return;
-  const email = document.getElementById(emailId).value.trim();
-  const password = document.getElementById(passId).value;
-  if(!email || !password) return;
+  const input = document.getElementById(inputId);
+  const email = input.value.trim();
+  if(!email) return;
   const btn = document.getElementById(btnId);
-  const statusEl = document.getElementById(statusId);
+  const statusEl = statusId ? document.getElementById(statusId) : null;
   const originalText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = 'Entrando...';
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  btn.textContent = 'Enviando...';
+  const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
   btn.disabled = false;
-  btn.textContent = originalText;
-  statusEl.textContent = error ? friendlyAuthError(error) : '';
-}
-
-async function attemptSignUp(emailId, passId, btnId, statusId){
-  if(!supabaseClient) return;
-  const email = document.getElementById(emailId).value.trim();
-  const password = document.getElementById(passId).value;
-  if(!email || !password) return;
-  const btn = document.getElementById(btnId);
-  const statusEl = document.getElementById(statusId);
-  const originalText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Criando...';
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
-  btn.disabled = false;
-  btn.textContent = originalText;
   if(error){
-    statusEl.textContent = friendlyAuthError(error);
-    return;
-  }
-  if(data.session){
-    statusEl.textContent = ''; // já logou direto (confirmação de e-mail desativada)
+    btn.textContent = 'Erro, tente de novo';
+    if(statusEl) statusEl.textContent = friendlyAuthError(error);
   } else {
-    statusEl.textContent = 'Conta criada! Confira seu e-mail pra confirmar antes de entrar.';
+    btn.textContent = 'Link enviado!';
+    if(statusEl) statusEl.textContent = 'Confira seu e-mail (inclusive spam) e clique no link recebido.';
+    input.value = '';
   }
+  setTimeout(()=>{ btn.textContent = originalText; }, 4000);
 }
 
 document.getElementById('googleLoginBtn').addEventListener('click', attemptGoogleLogin);
-document.getElementById('signInBtn').addEventListener('click', ()=> attemptSignIn('authEmailInput', 'authPasswordInput', 'signInBtn', 'authStatus'));
-document.getElementById('signUpBtn').addEventListener('click', ()=> attemptSignUp('authEmailInput', 'authPasswordInput', 'signUpBtn', 'authStatus'));
+document.getElementById('magicLinkBtn').addEventListener('click', ()=> attemptMagicLink('magicEmailInput', 'magicLinkBtn', 'authStatus'));
 document.getElementById('logoutBtn').addEventListener('click', ()=>{
   if(!supabaseClient) return;
   supabaseClient.auth.signOut();
@@ -803,7 +770,7 @@ function showLoginGate(loadError){
     options.style.display = 'none';
   } else {
     title.textContent = 'Crie sua conta gratuita pra estudar';
-    desc.textContent = 'Entra com Google, ou cria uma conta com e-mail e senha. Seu progresso fica salvo e sincroniza em qualquer dispositivo.';
+    desc.textContent = 'É rápido e sem senha: entra com Google ou recebe um link no seu e-mail. Seu progresso fica salvo e sincroniza em qualquer dispositivo.';
     options.style.display = 'flex';
   }
   document.getElementById('gateStatus').textContent = '';
@@ -824,8 +791,7 @@ function hideLoginGate(){
 }
 
 document.getElementById('gateGoogleBtn').addEventListener('click', ()=> attemptGoogleLogin());
-document.getElementById('gateSignInBtn').addEventListener('click', ()=> attemptSignIn('gateEmailInput', 'gatePasswordInput', 'gateSignInBtn', 'gateStatus'));
-document.getElementById('gateSignUpBtn').addEventListener('click', ()=> attemptSignUp('gateEmailInput', 'gatePasswordInput', 'gateSignUpBtn', 'gateStatus'));
+document.getElementById('gateMagicLinkBtn').addEventListener('click', ()=> attemptMagicLink('gateMagicEmailInput', 'gateMagicLinkBtn', 'gateStatus'));
 let examTimerPausedByGate = false;
 
 // ============================================================
