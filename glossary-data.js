@@ -83,5 +83,15 @@ GLOSSARY.push(
 {term:"Secrets Manager", def:"Serviço para armazenar, gerenciar e rotacionar credenciais como senhas e chaves de API."},
 {term:"Artifact", def:"Portal de autoatendimento com relatórios de conformidade e acordos de segurança da AWS."},
 {term:"SageMaker", def:"Serviço totalmente gerenciado para construir, treinar e implantar modelos de machine learning."},
-{term:"Bedrock", def:"Serviço que dá acesso via API a modelos fundacionais de IA generativa de diversas empresas."}
+{term:"Bedrock", def:"Serviço que dá acesso via API a modelos fundacionais de IA generativa de diversas empresas."},
+{term:"IAM Access Analyzer", def:"Identifica quando um bucket S3, uma IAM role ou outro recurso foi compartilhado com uma entidade externa à conta ou organização."},
+{term:"Credential Report", def:"Relatório do IAM que lista todos os usuários da conta e o status de suas credenciais (senha, MFA, idade das access keys), usado em auditorias."},
+{term:"EC2 Image Builder", def:"Serviço que automatiza a criação, teste e manutenção de AMIs (imagens) personalizadas e padronizadas do EC2."},
+{term:"VPC Flow Logs", def:"Registros do tráfego de rede (IP) que entra e sai das interfaces de rede dentro de uma VPC, usados para diagnóstico e investigação de segurança."},
+{term:"AWS Batch", def:"Serviço totalmente gerenciado para executar cargas de trabalho de processamento em lote (batch) em qualquer escala, sem gerenciar a infraestrutura subjacente."},
+{term:"Versionamento (S3)", def:"Recurso do S3 que mantém múltiplas versões de um objeto, protegendo contra exclusão ou substituição acidental."},
+{term:"AWS CAF — Envision", def:"Primeira fase da jornada de transformação do AWS CAF: identificar e priorizar oportunidades de transformação alinhadas a objetivos estratégicos do negócio."},
+{term:"AWS CAF — Align", def:"Fase do AWS CAF focada em identificar lacunas de capacidade entre as 6 perspectivas e dependências entre áreas, antes de partir para pilotos."},
+{term:"AWS CAF — Launch", def:"Fase do AWS CAF focada em entregar pilotos em produção e demonstrar valor de negócio incremental."},
+{term:"AWS CAF — Scale", def:"Última fase do AWS CAF: expandir os pilotos bem-sucedidos e o valor de negócio para a escala desejada em toda a organização."}
 );

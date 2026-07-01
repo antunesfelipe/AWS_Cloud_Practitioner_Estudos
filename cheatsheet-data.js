@@ -5,6 +5,7 @@ CHEATSHEET[1] = [
   "<b>Região:</b> agrupa múltiplas AZs. <b>AZ:</b> 1+ data centers isolados. <b>Edge Location:</b> ponto de presença pra baixa latência (CloudFront, Route 53).",
   "<b>Well-Architected Framework — 6 pilares:</b> Excelência Operacional, Segurança, Confiabilidade, Eficiência de Performance, Otimização de Custos, Sustentabilidade.",
   "<b>AWS CAF — 6 perspectivas:</b> Business, People, Governance (negócio) + Platform, Security, Operations (técnicas).",
+  "<b>AWS CAF — 4 fases de transformação:</b> Envision (definir objetivos) → Align (fechar lacunas de capacidade) → Launch (pilotos em produção) → Scale (expandir o que funcionou).",
   "<b>Modelos de implantação:</b> pública (compartilhada), privada (dedicada), híbrida (conecta on-premises com a nuvem).",
   "<b>Estratégias de migração (6 Rs):</b> Rehost (lift-and-shift), Replatform, Repurchase, Refactor, Retain, Retire."
 ];
