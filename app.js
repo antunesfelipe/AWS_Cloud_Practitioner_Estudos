@@ -645,6 +645,9 @@ async function handleAuthChange(session){
   if(currentUser){
     document.getElementById('authEmail').textContent = currentUser.email || 'Conectado';
     hideLoginGate();
+    if(window.location.hash){
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
     await syncOnLogin();
   } else {
     showLoginGate();
@@ -730,9 +733,10 @@ function friendlyAuthError(error){
 
 async function attemptGoogleLogin(){
   if(!supabaseClient) return;
+  const cleanUrl = window.location.origin + window.location.pathname;
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: cleanUrl }
   });
   if(error){
     const msg = friendlyAuthError(error);
