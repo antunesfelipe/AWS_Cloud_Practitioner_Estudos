@@ -726,7 +726,7 @@ function friendlyAuthError(error){
     return 'Confirme seu e-mail antes de entrar (confira a caixa de entrada, inclusive spam).';
   }
   if(msg.includes('rate limit')){
-    return 'Muitas tentativas seguidas — espera um minuto e tenta de novo.';
+    return 'Muitas tentativas seguidas — espera alguns minutos antes de tentar de novo.';
   }
   return 'Não deu certo agora. Confira os dados e tenta de novo.';
 }
@@ -831,6 +831,19 @@ document.getElementById('gateGoogleBtn').addEventListener('click', ()=> attemptG
 document.getElementById('gateSignInBtn').addEventListener('click', ()=> attemptSignIn('gateEmailInput', 'gatePasswordInput', 'gateSignInBtn', 'gateStatus'));
 document.getElementById('gateSignUpBtn').addEventListener('click', ()=> attemptSignUp('gateEmailInput', 'gatePasswordInput', 'gateSignUpBtn', 'gateStatus'));
 let examTimerPausedByGate = false;
+
+function wirePasswordToggle(btnId, inputId){
+  const btn = document.getElementById(btnId);
+  const input = document.getElementById(inputId);
+  btn.addEventListener('click', ()=>{
+    const willShow = input.type === 'password';
+    input.type = willShow ? 'text' : 'password';
+    btn.textContent = willShow ? '🙈' : '👁';
+    btn.setAttribute('aria-label', willShow ? 'Ocultar senha' : 'Mostrar senha');
+  });
+}
+wirePasswordToggle('authPwToggle', 'authPasswordInput');
+wirePasswordToggle('gatePwToggle', 'gatePasswordInput');
 
 // ============================================================
 // INIT
